@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script>
+
+
+
+        function updateBar(varName, num) {//this methos sets the width of the progress bar (input a number followed by percent symbol)
+            //it also changes the color of the bar if it is 100% or 0%
+
+            var barName = varName + "Bar"; //creating a variable name (string type)
+
+            var elem = document.getElementById(barName);
+
+            if (num < 0) {
+                elem.style.backgroundColor = "red";
+                num = 0;
+            }
+            else if (num >= 100) {
+                elem.style.backgroundColor = "blue";
+                num = 100;
+            }
+            else
+                elem.style.backgroundColor = "#4CAF50";
+
+
+
+            var newWidth = "";
+            newWidth = newWidth.concat(num);
+            newWidth = newWidth.concat("%");
+
+            //alert(newWidth);
+
+            elem.width = num;
+            elem.style.width = newWidth;
+        }
+
+        //-----------------------------------------------------------------------------------------------------------
+        function setCurrentTime(varName) {
+            //This method stores the current time on the device, that works as a timer reset
+            //create a Date() object
+            var currentTime = new Date();
+
+            //getting the current time (milliseconds since 1971)
+            var n = currentTime.getTime();
+
+            //writing time to local storage (myLocalVariable, variable to be saved)
+            localStorage.setItem(varName, n);
+
+
+
+
+            //Also storing a String variable containing all old time stamps
+            var stringVariable = varName + "String";
+            //extracting hours, minutes and seconds
+            var currentHours = currentTime.getHours();
+            var currentMinutes = currentTime.getMinutes();
+            var currentSeconds = currentTime.getSeconds();
+            var amPm = (currentHours < 12) ? "AM" : "PM";
+
+            //formating hours
+            currentHours = (currentHours <= 12) ? currentHours : currentHours - 12;
+            //formating minutes
+            currentMinutes = (currentMinutes < 10) ? "0".concat(currentMinutes) : currentMinutes;
+
+
+            var formatedTime = currentHours + ":" + currentMinutes + ":" + amPm + ",   ";
+            var oldContent = localStorage.getItem(stringVariable);
+
+
+            localStorage.setItem(stringVariable, formatedTime + oldContent);
+
+            writeTime(varName, stringVariable);
+
+            compareTime(varName);
+            //updateBar(varName);
+            //Reading data backto test
+            //var read = localStorage.getItem(varName);
+            //alert(read)
+        }
+        //-----------------------------------------------------------------------------------------------------------
+
+        function writeTime(varName) {
+            var stringVariable = varName + "String";
+            document.getElementById(varName).innerHTML = localStorage.getItem(stringVariable);
+        }
+
+        //-----------------------------------------------------------------------------------------------------------
+
+        function compareTime(varName) { //This method compares the current time vs the last time stamp recorder, then calculates the time
+            //reading from local variable
+            var oldTime = localStorage.getItem(varName);
+
+            //readig from system clock
+            var currentTime = new Date().getTime();
+
+            var timeDifference = currentTime - oldTime;
+            //alert(timeDifference/1000);
+
+            //this wariable reeives the time limit, 1 hour if "Water"
+            //and 3 hours if "Food"
+            var interval;
+            if (varName == "Water")
+                interval = (60 * 60 * 1);//1 hour for Water
+            else if (varName == "Food")
+                interval = (60 * 60 * 3); //3 hours for food
+
+            else if (varName == "Misc")
+                interval = 60;  //60 seconds for a misc, mostly for testing
+            //calculating progress percentage
+            var prog = ((timeDifference / 1000) / interval) * 100;
+
+
+            // this line makes it so the progress decreases instead of increasing
+            prog = 100 - prog;
+
+            //alert(prog);
+
+            updateBar(varName, prog);
+        }
+
+        //-----------------------------------------------------------------------------------------------------------
+        function clearTimeStamps(varName) {
+            var nothing = "";
+
+            //clearing current time
+            localStorage.setItem(varName, nothing);
+
+            //Also clearing string version with all old time stamps
+            var stringVariable = varName + "String";
+            localStorage.setItem(stringVariable, nothing);
+
+            var read = localStorage.getItem(varName);
+
+            //alert(read);
+            document.getElementById(varName).innerHTML = "";
+
+        }
+        //-----------------------------------------------------------------------------------------------------------
+
+        function countVisits() {
+            var newVisit = 1;
+            var oldValue = parseInt(localStorage.getItem("visits"), 10);
+            if (oldValue == null)
+                oldValue = 0;
+
+            var total = parseInt(newVisit, 10) + oldValue;
+            localStorage.setItem("visits", total);
+        }
+
+        function showVisits() {
+
+            var oldValue = parseInt(localStorage.getItem("visits"), 10);
+            //if(oldValue === "undefined");
+            //  oldValue = 0;
+
+            alert(oldValue);
+        }
+        function resetVisits() {
+            localStorage.setItem("visits", 0);
+        }
+        //-----------------------------------------------------------------------------------------------------------
+
+    </script>
+
+    <style>
+        #myProgress {
+            width: 100%;
+            background-color: grey;
+        }
+
+        #WaterBar, #FoodBar, #MiscBar {
+            width: 1%;
+            height: 60px;
+            background-color: green;
+            text-align: center;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 3em;
+        }
+
+
+
+        #Water, #Food, #Misc {
+            font-size: 3em;
+        }
+
+        button, input[type="button"], input[type="submit"] {
+            color: #050;
+            font: bold 84% 'trebuchet ms',helvetica,sans-serif;
+            font-size: 3em;
+            background-color: #fed;
+            border: 1px solid;
+            border-color: #696 #363 #363 #696;
+            width: 30%;
+            margin-right: 20px;
+            cellpadding: 10px;
+        }
+    </style>
+
+    <script type="module"> //type="module" makes it loat at the end, see: https://html.spec.whatwg.org/multipage/scripting.html#attr-script-defer
+        window.addEventListener('load', compareTime('Water'));
+        window.addEventListener('load', writeTime('Water'));
+
+        window.addEventListener('load', compareTime('Food'));
+        window.addEventListener('load', writeTime('Food'));
+
+        window.addEventListener('load', compareTime('Misc'));
+        window.addEventListener('load', writeTime('Misc'));
+
+        window.addEventListener('load', countVisits());
+
+    </script>
+</head>
+<body>
+    <table style="width:100%" border="0" cellspacing="0" cellpadding="0">
+        <tr>
+            <td>
+                <div id="myProgress">
+                    <div id="WaterBar">Water</div>
+                </div>
+                <!--//<div id="divTime001"></div>  -->
+                <div id="Water"></div>
+                <form>
+                    <!-- <input type="text" name="inpu" >  -->
+                    <input type="button" onClick="setCurrentTime('Water');" value="Water">
+                    <input type="button" onClick="clearTimeStamps('Water'); compareTime('Water');" value="Clear Time Stamps">
+                    <input type="button" onclick="compareTime('Water')" value="update">
+                </form>
+            </td>
+        </tr>
+        <tr height="40px">></tr>
+
+        <tr>
+            <td>
+                <div id="myProgress">
+                    <div id="FoodBar">Food</div>
+                </div>
+                <!--//<div id="divTime001"></div>  -->
+                <div id="Food"></div>
+                <form>
+                    <!-- <input type="text" name="inpu" >  -->
+                    <input type="button" onClick="setCurrentTime('Food');" value="Food" style="fontSize:2em">
+                    <input type="button" onClick="clearTimeStamps('Food'); compareTime('Food');" value="Clear Time Stamps">
+                    <input type="button" onclick="compareTime('Food')" value="update">
+                </form>
+            </td>
+        </tr>
+        <tr height="40px">></tr>
+
+        <tr>
+            <td>
+                <div id="myProgress">
+                    <div id="MiscBar">Misc</div>
+                </div>
+                <!--//<div id="divTime001"></div>  -->
+                <div id="Misc"></div>
+                <form>
+                    <!-- <input type="text" name="inpu" >  -->
+                    <input type="button" onClick="setCurrentTime('Misc');" value="Miscellaneous Item">
+                    <input type="button" onClick="clearTimeStamps('Misc'); compareTime('Misc');" value="Clear Time Stamps">
+                    <input type="button" onclick="compareTime('Misc')" value="update">
+                </form>
+            </td>
+        </tr>
+    </table>
+
+
+
+    <!--<a href="aspTest.asp">ASP version</a> -->
+    <!--
+      <form>
+        <input type="button" value="show" onclick="showVisits()">
+        <input type="button" value="reset" onclick="resetVisits()">
+      </form>
+    -->
+
+</body>
+
+
+
+
+</html>
